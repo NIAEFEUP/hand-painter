@@ -1,4 +1,5 @@
 import os
+import string
 import threading
 import time
 from Text import Text
@@ -93,7 +94,7 @@ class State:
             self.move_img,
         )
 
-    def pictureTimerState(self, next_state = None):
+    def pictureTimerState(self, next_state=None):
         return PictureTimerState(
             self.headerImage,
             self.ni_logo,
@@ -106,10 +107,10 @@ class State:
             self.erase_img,
             self.paint_img,
             self.move_img,
-            next_state
+            next_state,
         )
 
-    def emailState(self, filename_canvas, filename_foto, next_state = None):
+    def emailState(self, filename_canvas, filename_foto, next_state=None):
         return EmailState(
             self.headerImage,
             self.ni_logo,
@@ -124,10 +125,10 @@ class State:
             self.move_img,
             filename_canvas,
             filename_foto,
-            next_state
+            next_state,
         )
 
-    def nameState(self, word, score, next_state = None):
+    def nameState(self, word, score, next_state=None):
         return NameState(
             self.headerImage,
             self.ni_logo,
@@ -142,7 +143,7 @@ class State:
             self.move_img,
             word,
             score,
-            next_state
+            next_state,
         )
 
     def freeModeState(self):
@@ -208,7 +209,7 @@ class State:
             self.paint_img,
             self.move_img,
         )
-    
+
     def finishChallengeState(self, word_to_draw, limits, score):
         return FinishChallengeState(
             self.headerImage,
@@ -224,11 +225,15 @@ class State:
             self.move_img,
             word_to_draw,
             limits,
-            score
+            score,
         )
 
     @abstractmethod
     def run(self, img, hand: Hand) -> tuple["State", Mat]:
+        pass
+
+    @abstractmethod
+    def handle_input(self, _input: int):
         pass
 
 
@@ -248,7 +253,7 @@ class EmailState(State):
         move_img,
         filename_canvas,
         filename_foto,
-        next_state = None
+        next_state=None,
     ) -> None:
         super().__init__(
             headerImage,
@@ -268,11 +273,109 @@ class EmailState(State):
         self.filename_canvas = filename_canvas
         self.filename_foto = filename_foto
         self.next_state = next_state
+        self.input_handler = lambda x: self.text_field.type(x)
+        self.keyboard = Keyboard(self.input_handler)
+
+        self.submit_handler = threading.Thread(
+            target=lambda: Mail().send(self.get_mail(), ["foto.png", "desenho.png"])
+        )
+
+    def handle_input(self, _input_key: int):
+        if _input_key == Keyboard.ENTER_KEY_CODE:
+            self.submit_handler.start()
+            return False, self.mainMenuState()
+        elif _input_key == Keyboard.SHIFT_KEY_CODE:
+            self.keyboard.modifier = (
+                KeyboardState.NORMAL
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else KeyboardState.SHIFT
+            )
+            return True, None
+        elif _input_key == Keyboard.BACKSPACE_KEY_CODE:
+            self.text_field.delete()
+            return True, None
+        elif _input_key in (Keyboard.AT_KEY_CODE,):
+            return (
+                True,
+                None,
+            )  # special characters that should not trigger a state change
+        elif (key_char := chr(_input_key)) in string.ascii_lowercase:
+            self.input_handler(
+                chr(ord(key_char) - 32)
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else key_char
+            )
+            return True, None
+        elif (key_char := chr(_input_key - 32)) in string.ascii_uppercase:
+            self.input_handler(
+                chr(ord(key_char) + 32)
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else key_char
+            )
+            return True, None
+
+        elif (key_char := chr(_input_key)) in string.digits + "".join(
+            [
+                "\\",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "0",
+                "'",
+                "«",
+                "+",
+                "-",
+                ".",
+                ",",
+                "@",
+            ]
+        ):
+            # spaghetti
+
+            symbol_map = {
+                "\\": "|",
+                "1": "!",
+                "2": '"',
+                "3": "#",
+                "4": "$",
+                "5": "%",
+                "6": "&",
+                "7": "/",
+                "8": "(",
+                "9": ")",
+                "0": "=",
+                "'": "?",
+                "«": "»",
+                "+": "*",
+                "-": "_",
+                ".": ":",
+                ",": ";",
+            }
+
+            self.input_handler(
+                symbol_map[key_char]
+                if self.keyboard.modifier == KeyboardState.SHIFT and key_char != "@"
+                else key_char
+            )
+            return True, None
+        else:
+            print("Unknown input key", _input_key)
+            return False, self.mainMenuState()
+
+    # spaghetti
+    def get_mail(self):
+        return self.text_field.parsed_value
 
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
 
-        img = Text.putText(img, "Email", (50, 70), 50, (0,0,0))
+        img = Text.putText(img, "Email", (50, 70), 50, (0, 0, 0))
         text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
         img = text_field_ui.draw(img)
 
@@ -300,14 +403,8 @@ class EmailState(State):
             elif self.keyboard.delete_btn.click(hand):
                 self.text_field.delete()
             elif self.keyboard.submit_btn.click(hand):
-                threading.Thread(
-                    target=lambda: Mail().send(
-                        self.text_field.parsed_value, [self.filename_foto, self.filename_canvas]
-                    )
-                ).start()
-
-                target_state = self.next_state if self.next_state != None else self.mainMenuState()
-                return target_state, img
+                self.submit_handler.start()
+                return self.mainMenuState(), img
 
         return self, img
 
@@ -326,7 +423,7 @@ class PictureTimerState(State):
         erase_img,
         paint_img,
         move_img,
-        next_state = None
+        next_state=None,
     ) -> None:
         super().__init__(
             headerImage,
@@ -339,11 +436,14 @@ class PictureTimerState(State):
             click_img,
             erase_img,
             paint_img,
-            move_img
+            move_img,
         )
 
         self.timer = Timer(Variables.SCRENNSHOT_TIME)
         self.next_state = next_state
+
+    def handle_input(self, _input_key: int):
+        return False, self
 
     def run(self, img, hand: Hand) -> tuple["State", Mat]:
         img = self.imageCanvas.merge(img)
@@ -408,8 +508,10 @@ class PaintingState(State):
     GREEN_BRUSH: ClassVar[Brush] = Brush(20, (13, 152, 35))
     BLUE_BRUSH: ClassVar[Brush] = Brush(20, (250, 160, 15))
 
-    def paint(self, img, hands):
+    def handle_input(self, _input_key: int):
+        return False, self
 
+    def paint(self, img, hands):
         self.draw_limits(img)
 
         # Add limits parameter for square limits in challenge mode
@@ -528,6 +630,7 @@ class PaintingState(State):
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         pass
 
+
 class NameState(State):
     def __init__(
         self,
@@ -544,7 +647,7 @@ class NameState(State):
         move_img,
         word_to_draw,
         score,
-        next_state = None
+        next_state=None,
     ) -> None:
         super().__init__(
             headerImage,
@@ -557,7 +660,7 @@ class NameState(State):
             click_img,
             erase_img,
             paint_img,
-            move_img
+            move_img,
         )
         self.text_field = TextField()
         self.keyboard = Keyboard(lambda x: self.text_field.type(x))
@@ -568,7 +671,7 @@ class NameState(State):
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
 
-        img = Text.putText(img, "Nome", (50, 70), 50, (0,0,0))
+        img = Text.putText(img, "Nome", (50, 70), 50, (0, 0, 0))
         text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
         img = text_field_ui.draw(img)
 
@@ -588,13 +691,23 @@ class NameState(State):
 
             kbd_mod = self.keyboard.modifier
             if self.keyboard.shift_btn.click(hand):
-                self.keyboard.modifier = KeyboardState.NORMAL if kbd_mod == KeyboardState.SHIFT else KeyboardState.SHIFT
+                self.keyboard.modifier = (
+                    KeyboardState.NORMAL
+                    if kbd_mod == KeyboardState.SHIFT
+                    else KeyboardState.SHIFT
+                )
             elif self.keyboard.delete_btn.click(hand):
                 self.text_field.delete()
             elif self.keyboard.submit_btn.click(hand):
-                self.ranking.insertScore(self.text_field.parsed_value, self.score, self.word_to_draw["name_pt"])
-                
-                target_state = self.next_state if self.next_state != None else self.mainMenuState()
+                self.ranking.insertScore(
+                    self.text_field.parsed_value,
+                    self.score,
+                    self.word_to_draw["name_pt"],
+                )
+
+                target_state = (
+                    self.next_state if self.next_state != None else self.mainMenuState()
+                )
                 return target_state, img
 
         return self, img
@@ -602,37 +715,44 @@ class NameState(State):
 
 class FinishChallengeState(State):
     def __init__(
-        self, 
-        headerImage, 
-        ni_logo, 
-        ni_banner, 
-        ranking_img, 
-        ranking: Ranking, 
-        video_height, 
-        imageCanvas: ImageCanvas, 
+        self,
+        headerImage,
+        ni_logo,
+        ni_banner,
+        ranking_img,
+        ranking: Ranking,
+        video_height,
+        imageCanvas: ImageCanvas,
         click_img,
         erase_img,
         paint_img,
         move_img,
-        word_to_draw, 
-        limits, 
+        word_to_draw,
+        limits,
         score,
-        ) -> None:
+    ) -> None:
         super().__init__(
-            headerImage, 
-            ni_logo, 
-            ni_banner, 
-            ranking_img, 
-            ranking, 
-            video_height, 
+            headerImage,
+            ni_logo,
+            ni_banner,
+            ranking_img,
+            ranking,
+            video_height,
             imageCanvas,
             click_img,
             erase_img,
             paint_img,
-            move_img,    
+            move_img,
         )
-        self.email_btn = Button(900,350,"Enviar para email", 350, ignore_padding=True)
-        self.username_btn = Button(900,450,"Escrever nome", 350, ignore_padding=True, enabled=not self.ranking.willInsertScore(score))
+        self.email_btn = Button(900, 350, "Enviar para email", 350, ignore_padding=True)
+        self.username_btn = Button(
+            900,
+            450,
+            "Escrever nome",
+            350,
+            ignore_padding=True,
+            enabled=not self.ranking.willInsertScore(score),
+        )
         self.word_to_draw = word_to_draw
         self.score = score
         self.limits = limits
@@ -645,16 +765,15 @@ class FinishChallengeState(State):
         top, left = 100, 500
 
         # Right Text
-        offsetX = (left + square_size + 20)
+        offsetX = left + square_size + 20
         word = self.word_to_draw["name_pt"]
 
-        img = Text.putTextCenter(img, word, top+100, offsetX)
-        img = Text.putTextCenter(img, f"{self.score}%", top+150, offsetX, size=50)
+        img = Text.putTextCenter(img, word, top + 100, offsetX)
+        img = Text.putTextCenter(img, f"{self.score}%", top + 150, offsetX, size=50)
 
         img = self.exit_btn.draw(img, hands)
         img = self.username_btn.draw(img, hands)
         img = self.email_btn.draw(img, hands)
-
 
         for hand in hands:
             for hand in hands:
@@ -719,7 +838,10 @@ class ChallengeModeState(PaintingState):
         self.word_to_draw = Dataset().get_random_word()
         self.timer = Timer(Variables.CHALLENGE_TIME)
 
-    def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
+    def handle_input(self, _input_key: int):
+        return False, self
+
+    def run(self, img, hands: Hand) -> tuple["State", Mat]:
         square_size = 470
         top, left = 140, 240
 
@@ -740,9 +862,8 @@ class ChallengeModeState(PaintingState):
 
         if self.timer.completed:
             predicts = Dataset().get_predicts(self.imageCanvas.canvas)
-            score = 10 # Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
+            score = 10  # Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
             return self.finishChallengeState(self.word_to_draw, self.limits, score), img
-
 
         state, img = self.draw_menu(img, hands)
 
@@ -753,6 +874,9 @@ class ChallengeModeState(PaintingState):
 
 
 class MainMenuState(State):
+    def handle_input(self, _input_key: int):
+        return False, self
+
     def run(self, img, hands: list[Hand]) -> tuple[State, Mat]:
         # Logo
         img = cvzone.overlayPNG(img, self.ni_banner, [20, 20])
@@ -793,6 +917,9 @@ class MainMenuState(State):
 
 
 class RankingState(State):
+    def handle_input(self, _input_key: int):
+        return False, self
+
     def run(self, img, hands: list[Hand]) -> tuple[State, Mat]:
         black_overlay = np.zeros((720, 1280, 3), np.uint8)
         img = cv2.addWeighted(img[0:720, 0:1280], 0.3, black_overlay, 0.5, 1)
@@ -827,6 +954,9 @@ class RankingState(State):
 
 
 class ControlsState(State):
+    def handle_input(self, _input_key: int):
+        return False, self
+
     def __init__(
         self,
         headerImage,
