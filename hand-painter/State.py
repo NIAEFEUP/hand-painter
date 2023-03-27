@@ -95,6 +95,19 @@ class State:
             self.imageCanvas,
         )
 
+    def nameState(self, word, score):
+        return NameState(
+            self.headerImage,
+            self.ni_logo,
+            self.ni_banner,
+            self.ranking_img,
+            self.ranking,
+            self.video_height,
+            self.imageCanvas,
+            word,
+            score
+        )
+
     def freeModeState(self):
         self.imageCanvas.reset()
         return FreeModeState(
@@ -176,6 +189,7 @@ class EmailState(State):
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
 
+        img = Text.putText(img, "Email", (50, 70), 50)
         text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
         img = text_field_ui.draw(img)
 
@@ -380,6 +394,65 @@ class PaintingState(State):
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         pass
 
+class NameState(State):
+    def __init__(
+        self,
+        headerImage,
+        ni_logo,
+        ni_banner,
+        ranking_img,
+        ranking: Ranking,
+        video_height,
+        imageCanvas: ImageCanvas,
+        word_to_draw,
+        score,
+    ) -> None:
+        super().__init__(
+            headerImage,
+            ni_logo,
+            ni_banner,
+            ranking_img,
+            ranking,
+            video_height,
+            imageCanvas,
+        )
+        self.text_field = TextField()
+        self.keyboard = Keyboard(lambda x: self.text_field.type(x))
+        self.score = score
+        self.word_to_draw = word_to_draw
+
+    def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
+        self.keyboard.draw(img, hands)
+
+        img = Text.putText(img, "Nome", (50, 70), 50)
+        text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
+        img = text_field_ui.draw(img)
+
+        if self.keyboard.modifier == KeyboardState.NORMAL:
+            img = cvzone.overlayPNG(img, normal_keyboard_set, (0, 0))
+        else:
+            img = cvzone.overlayPNG(img, shift_keyboard_set, (0, 0))
+
+        for hand in hands:
+            cv2.circle(
+                img,
+                (hand.index_tip_position[0], hand.index_tip_position[1]),
+                1,
+                self.NI_COLOR_RED,
+                hand.brush.size + 15,
+            )
+
+            kbd_mod = self.keyboard.modifier
+            if self.keyboard.shift_btn.click(hand):
+                self.keyboard.modifier = KeyboardState.NORMAL if kbd_mod == KeyboardState.SHIFT else KeyboardState.SHIFT
+            elif self.keyboard.delete_btn.click(hand):
+                self.text_field.delete()
+            elif self.keyboard.submit_btn.click(hand):
+                self.ranking.insertScore(self.text_field.parsed_value, self.score, self.word_to_draw["name_pt"])
+                return self.mainMenuState(), img
+
+        return self, img
+
 
 class FinishChallengeState(State):
     def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, word_to_draw, limits) -> None:
@@ -389,6 +462,7 @@ class FinishChallengeState(State):
         self.word_to_draw = word_to_draw
         self.score = 70 # predict!
         self.limits = limits
+        self.show_name_btn = self.ranking.willInsertScore(self.score)
 
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         self.draw_limits(img)
@@ -405,12 +479,19 @@ class FinishChallengeState(State):
         img = Text.putTextCenter(img, f"{self.score}%", top+150, offsetX, size=50)
 
         img = self.exit_btn.draw(img, hands)
-        img = self.username_btn.draw(img, hands)
+        if self.show_name_btn:
+            img = self.username_btn.draw(img, hands)
         img = self.email_btn.draw(img, hands)
 
 
         for hand in hands:
             for hand in hands:
+                if self.email_btn.click(hand):
+                    return self.pictureTimerState(), img
+
+                if self.show_name_btn and self.username_btn.click(hand):
+                    return self.nameState(self.word_to_draw, self.score), img
+
                 if self.exit_btn.click(hand):
                     return self.mainMenuState(), img
             continue
