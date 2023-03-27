@@ -461,7 +461,7 @@ class PictureTimerState(State):
 
         if self.timer.completed:
             timestamp = time.time()
-            os.mkdir(f"screenshots/{timestamp}")
+            os.makedirs(f"screenshots/{timestamp}")
             filename_canvas = f"screenshots/{timestamp}/desenho.png"
             filename_foto = f"screenshots/{timestamp}/foto.png"
             cv2.imwrite(filename_canvas, self.imageCanvas.white_canvas())
@@ -667,6 +667,104 @@ class NameState(State):
         self.score = score
         self.word_to_draw = word_to_draw
         self.next_state = next_state
+
+    def handle_input(self, _input_key: int):
+        if _input_key == Keyboard.ENTER_KEY_CODE:
+            self.ranking.insertScore(
+                self.text_field.parsed_value,
+                self.score,
+                self.word_to_draw["name_pt"],
+            )
+
+            target_state = (
+                self.next_state if self.next_state != None else self.mainMenuState()
+            )
+
+            return False, target_state
+        elif _input_key == Keyboard.SHIFT_KEY_CODE:
+            self.keyboard.modifier = (
+                KeyboardState.NORMAL
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else KeyboardState.SHIFT
+            )
+            return True, None
+        elif _input_key == Keyboard.BACKSPACE_KEY_CODE:
+            self.text_field.delete()
+            return True, None
+        elif _input_key in (Keyboard.AT_KEY_CODE,):
+            return (
+                True,
+                None,
+            )  # special characters that should not trigger a state change
+        elif (key_char := chr(_input_key)) in string.ascii_lowercase:
+            self.text_field.type(
+                chr(ord(key_char) - 32)
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else key_char
+            )
+            return True, None
+        elif (key_char := chr(_input_key - 32)) in string.ascii_uppercase:
+            self.text_field.type(
+                chr(ord(key_char) + 32)
+                if self.keyboard.modifier == KeyboardState.SHIFT
+                else key_char
+            )
+            return True, None
+
+        elif (key_char := chr(_input_key)) in string.digits + "".join(
+            [
+                "\\",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "0",
+                "'",
+                "«",
+                "+",
+                "-",
+                ".",
+                ",",
+                "@",
+                " ",
+            ]
+        ):
+            # spaghetti
+
+            symbol_map = {
+                "\\": "|",
+                "1": "!",
+                "2": '"',
+                "3": "#",
+                "4": "$",
+                "5": "%",
+                "6": "&",
+                "7": "/",
+                "8": "(",
+                "9": ")",
+                "0": "=",
+                "'": "?",
+                "«": "»",
+                "+": "*",
+                "-": "_",
+                ".": ":",
+                ",": ";",
+            }
+
+            self.text_field.type(
+                symbol_map[key_char]
+                if self.keyboard.modifier == KeyboardState.SHIFT and key_char not in ("@", " ")
+                else key_char
+            )
+            return True, None
+        else:
+            print("Unknown input key", _input_key)
+            return False, self.mainMenuState()
 
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)

@@ -8,7 +8,9 @@ TEXT_COLOR = (0, 0, 0)
 
 
 class Button:
-    def __init__(self, x, y, text, width=350, height=80, ignore_padding=False, enabled=True):
+    def __init__(
+        self, x, y, text, width=350, height=80, ignore_padding=False, enabled=True
+    ):
         self.x = x
         self.y = y
         self.text = text
