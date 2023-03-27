@@ -50,7 +50,7 @@ class Mail:
             for image in images:
                 with open(image, "rb") as f:
                     img_data = f.read()
-                    image = MIMEImage(img_data, name=image)
+                    image = MIMEImage(img_data, name=image.split("/")[-1])
                     msg.attach(image)
 
             service.sendmail(self.sender_mail, to, msg.as_string())
