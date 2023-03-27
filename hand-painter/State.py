@@ -119,6 +119,17 @@ class State:
             self.video_height,
             self.imageCanvas,
         )
+    
+    def finishChallengeState(self):
+        return FinishChallengeState(
+            self.headerImage,
+            self.ni_logo,
+            self.ni_banner,
+            self.ranking_img,
+            self.ranking,
+            self.video_height,
+            self.imageCanvas,
+        )
 
     @abstractmethod
     def run(self, img, hand: Hand) -> tuple["State", Mat]:
@@ -365,6 +376,37 @@ class PaintingState(State):
         pass
 
 
+class FinishChallengeState(State):
+    def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas) -> None:
+        super().__init__(headerImage, ni_logo, ni_banner, ranking_img, ranking, video_height, imageCanvas)
+        self.email_btn = Button(600,600,"Enviar desenho para o email")
+        self.username_btn = Button(600,700,"Escrever nome")
+
+    def run(self, img, hands: Hand) -> tuple["State", Mat]:
+        overlay = img.copy()
+        cv2.rectangle(overlay, (0, 0), (img.shape[1], img.shape[0]), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.5, img, 0.5, 0, img)
+
+        square_size = 300
+        top, left = 140, 240
+        
+        # add the draw at (240, 140)
+
+        # Right Text
+        offsetX = (left + square_size + 20)
+        text1 = "Desenha esta palavra"
+        #text2 = self.word_to_draw["name_pt"]
+        text2 = "Cachorro"
+
+        img = Text.putTextCenter(img, text1, top+50, offsetX)
+        img = Text.putTextCenter(img, text2, top+100, offsetX)
+
+        for hand in hands:
+            continue
+
+        return self, img
+
+
 class FreeModeState(PaintingState):
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         self.paint(img, hands)
@@ -432,6 +474,7 @@ class MainMenuState(State):
                 return self.challengeModeState(), img
 
             if self.ranking_btn.click(hand):
+                return self.finishChallengeState(), img
                 return self.rankingState(), img
 
             if self.exit_btn.click(hand):
