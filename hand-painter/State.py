@@ -866,7 +866,7 @@ class FinishChallengeState(State):
         offsetX = left + square_size + 20
         word = self.word_to_draw["name_pt"]
 
-        img = Text.putTextCenter(img, word, top + 100, offsetX)
+        img = Text.putTextCenter(img, word, top + 100, offsetX, color=(54,54,179))
         img = Text.putTextCenter(img, f"{self.score}%", top + 150, offsetX, size=50)
 
         img = self.exit_btn.draw(img, hands)
@@ -950,7 +950,7 @@ class ChallengeModeState(PaintingState):
         text2 = self.word_to_draw["name_pt"]
 
         img = Text.putTextCenter(img, text1, top + 50, offsetX)
-        img = Text.putTextCenter(img, text2, top + 100, offsetX)
+        img = Text.putTextCenter(img, text2, top + 100, offsetX, color=(54,54,179))
 
         # Don't show text on 0s, where the picture is taken
         value = math.ceil(self.timer.value)

@@ -23,38 +23,39 @@ class Mail:
 
     def send(self, to, images):
         try:
-            ssl_context = ssl.create_default_context()
-            service = smtplib.SMTP_SSL(
-                self.smtp_server_domain_name, self.port, context=ssl_context
-            )
-            service.login(self.sender_mail, self.password)
+            if to != "":
+                ssl_context = ssl.create_default_context()
+                service = smtplib.SMTP_SSL(
+                    self.smtp_server_domain_name, self.port, context=ssl_context
+                )
+                service.login(self.sender_mail, self.password)
 
-            msg = MIMEMultipart()
-            msg["Subject"] = "NIAEFEUP - Semana Profissão Engenheiro"
-            msg["From"] = self.sender_mail
-            msg["To"] = to
+                msg = MIMEMultipart()
+                msg["Subject"] = "NIAEFEUP - Semana Profissão Engenheiro"
+                msg["From"] = self.sender_mail
+                msg["To"] = to
 
-            text = MIMEText(
+                text = MIMEText(
+                    """
+                Olá!
+
+                Obrigado por teres passado na nossa banca e teres ficado a conhecer aquilo que fazemos no Núcleo e na faculdade!
+
+                Segue-nos nas nossas redes sociais para que estejas a par de tudo aquilo que fazemos! @niaefeup
+
+                Enviamos em anexo os teus desenhos!
                 """
-            Olá!
+                )
+                msg.attach(text)
 
-            Obrigado por teres passado na nossa banca e teres ficado a conhecer aquilo que fazemos no Núcleo e na faculdade!
+                for image in images:
+                    with open(image, "rb") as f:
+                        img_data = f.read()
+                        image = MIMEImage(img_data, name=image.split("/")[-1])
+                        msg.attach(image)
 
-            Segue-nos nas nossas redes sociais para que estejas a par de tudo aquilo que fazemos! @niaefeup
+                service.sendmail(self.sender_mail, to, msg.as_string())
 
-            Enviamos em anexo os teus desenhos!
-            """
-            )
-            msg.attach(text)
-
-            for image in images:
-                with open(image, "rb") as f:
-                    img_data = f.read()
-                    image = MIMEImage(img_data, name=image.split("/")[-1])
-                    msg.attach(image)
-
-            service.sendmail(self.sender_mail, to, msg.as_string())
-
-            service.quit()
+                service.quit()
         except Exception as e:
             print("Error sending email: ", e)
