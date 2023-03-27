@@ -7,14 +7,14 @@ BACKGROUND_HOVER_COLOR = (220, 220, 220)
 TEXT_COLOR = (0, 0, 0)
 
 class Button:
-    def __init__(self, x, y, text, width=350, height=80):
+    def __init__(self, x, y, text, width=350, height=80, ignore_padding=False):
         self.x = x
         self.y = y
         self.text = text
         self.w = width
         self.h = height
 
-        if len(text) > 10 and (30 * len(text) + 60) > width:
+        if not ignore_padding and len(text) > 10 and (30 * len(text) + 60) > width:
             self.w = 30 * len(text) + 60
 
     def drawSimple(self, img, hands : list[Hand] = [], color = BACKGROUND_COLOR):

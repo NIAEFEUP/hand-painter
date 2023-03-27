@@ -50,6 +50,18 @@ class State:
         self.video_height = video_height
         self.imageCanvas = imageCanvas
 
+    def draw_limits(self, img):
+        if self.limits:
+            overlay = img.copy()
+            x1, y1, x2, y2 = self.limits
+            x1, y1 = x1 - 1, y1 - 1
+            x2, y2 = x2 + 1, y2 + 1
+            cv2.rectangle(overlay, (0, 0), (x1, img.shape[0]), (0, 0, 0), -1)
+            cv2.rectangle(overlay, (x2, 0), (img.shape[1], img.shape[0]), (0, 0, 0), -1)
+            cv2.rectangle(overlay, (x1, 0), (x2, y1), (0, 0, 0), -1)
+            cv2.rectangle(overlay, (x1, y2), (x2, img.shape[0]), (0, 0, 0), -1)
+            cv2.addWeighted(overlay, 0.5, img, 1 - 0.5, 0, img)
+
     def mainMenuState(self):
         return MainMenuState(
             self.headerImage,
@@ -120,7 +132,7 @@ class State:
             self.imageCanvas,
         )
     
-    def finishChallengeState(self):
+    def finishChallengeState(self, word_to_draw, limits):
         return FinishChallengeState(
             self.headerImage,
             self.ni_logo,
@@ -129,6 +141,8 @@ class State:
             self.ranking,
             self.video_height,
             self.imageCanvas,
+            word_to_draw,
+            limits
         )
 
     @abstractmethod
@@ -253,16 +267,7 @@ class PaintingState(State):
 
     def paint(self, img, hands):
 
-        if self.limits:
-            overlay = img.copy()
-            x1, y1, x2, y2 = self.limits
-            x1, y1 = x1 - 1, y1 - 1
-            x2, y2 = x2 + 1, y2 + 1
-            cv2.rectangle(overlay, (0, 0), (x1, img.shape[0]), (0, 0, 0), -1)
-            cv2.rectangle(overlay, (x2, 0), (img.shape[1], img.shape[0]), (0, 0, 0), -1)
-            cv2.rectangle(overlay, (x1, 0), (x2, y1), (0, 0, 0), -1)
-            cv2.rectangle(overlay, (x1, y2), (x2, img.shape[0]), (0, 0, 0), -1)
-            cv2.addWeighted(overlay, 0.5, img, 1 - 0.5, 0, img)
+        self.draw_limits(img)
 
         # Add limits parameter for square limits in challenge mode
         for hand in hands:
@@ -377,31 +382,37 @@ class PaintingState(State):
 
 
 class FinishChallengeState(State):
-    def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas) -> None:
+    def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, word_to_draw, limits) -> None:
         super().__init__(headerImage, ni_logo, ni_banner, ranking_img, ranking, video_height, imageCanvas)
-        self.email_btn = Button(600,600,"Enviar desenho para o email")
-        self.username_btn = Button(600,700,"Escrever nome")
+        self.email_btn = Button(900,350,"Enviar para email", 350, ignore_padding=True)
+        self.username_btn = Button(900,450,"Escrever nome", 350, ignore_padding=True)
+        self.word_to_draw = word_to_draw
+        self.score = 70 # predict!
+        self.limits = limits
 
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
-        overlay = img.copy()
-        cv2.rectangle(overlay, (0, 0), (img.shape[1], img.shape[0]), (0, 0, 0), -1)
-        cv2.addWeighted(overlay, 0.5, img, 0.5, 0, img)
+        self.draw_limits(img)
+        img = self.imageCanvas.merge(img)
 
-        square_size = 300
-        top, left = 140, 240
-        
-        # add the draw at (240, 140)
+        square_size = 350
+        top, left = 100, 500
 
         # Right Text
         offsetX = (left + square_size + 20)
-        text1 = "Desenha esta palavra"
-        #text2 = self.word_to_draw["name_pt"]
-        text2 = "Cachorro"
+        word = self.word_to_draw["name_pt"]
 
-        img = Text.putTextCenter(img, text1, top+50, offsetX)
-        img = Text.putTextCenter(img, text2, top+100, offsetX)
+        img = Text.putTextCenter(img, word, top+100, offsetX)
+        img = Text.putTextCenter(img, f"{self.score}%", top+150, offsetX, size=50)
+
+        img = self.exit_btn.draw(img, hands)
+        img = self.username_btn.draw(img, hands)
+        img = self.email_btn.draw(img, hands)
+
 
         for hand in hands:
+            for hand in hands:
+                if self.exit_btn.click(hand):
+                    return self.mainMenuState(), img
             continue
 
         return self, img
@@ -423,7 +434,7 @@ class ChallengeModeState(PaintingState):
     def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, limits) -> None:
         super().__init__(headerImage, ni_logo, ni_banner, ranking_img, ranking, video_height, imageCanvas, limits)
         self.word_to_draw = Dataset().get_random_word()
-        self.timer = Timer(10)
+        self.timer = Timer(3)
 
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         square_size = 470
@@ -444,10 +455,9 @@ class ChallengeModeState(PaintingState):
             img = Text.putTextCenter(img, "Tempo restante", top + 200, offsetX, size=70)
             img = Text.putTextCenter(img, str(value), top + 250, offsetX, size=200)
 
-        # if self.timer.completed:
-        #     cv2.imwrite("desenho.png", self.imageCanvas.white_canvas())
-        #     cv2.imwrite("foto.png", self.imageCanvas.merge_camera())
-        #     return self.emailState(), img
+        if self.timer.completed:
+            return self.finishChallengeState(self.word_to_draw, self.limits), img
+
 
         state, img = self.draw_menu(img, hands)
 
@@ -486,7 +496,6 @@ class MainMenuState(State):
                 return self.challengeModeState(), img
 
             if self.ranking_btn.click(hand):
-                return self.finishChallengeState(), img
                 return self.rankingState(), img
 
             if self.exit_btn.click(hand):
