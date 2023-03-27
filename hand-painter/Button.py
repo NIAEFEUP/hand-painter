@@ -8,17 +8,20 @@ TEXT_COLOR = (0, 0, 0)
 
 
 class Button:
-    def __init__(self, x, y, text, width=350, height=80, ignore_padding=False):
+    def __init__(self, x, y, text, width=350, height=80, ignore_padding=False, enabled=True):
         self.x = x
         self.y = y
         self.text = text
         self.w = width
         self.h = height
+        self.enabled = enabled
 
         if not ignore_padding and len(text) > 10 and (30 * len(text) + 60) > width:
             self.w = 30 * len(text) + 60
 
     def drawSimple(self, img, hands: list[Hand] = [], color=BACKGROUND_COLOR):
+        if not self.enabled:
+            return img
         border_radius = 5
 
         # check if one hand is inside the button
@@ -71,6 +74,9 @@ class Button:
         )
 
     def draw(self, img, hands: list[Hand] = []):
+        if not self.enabled:
+            return img
+
         self.drawSimple(img, hands)
 
         return Text.putTextBox(
@@ -80,7 +86,8 @@ class Button:
     def click(self, hand: Hand):
         pos = hand.index_tip_position
         return (
-            self.x < pos[0] < self.x + self.w
+            self.enabled
+            and self.x < pos[0] < self.x + self.w
             and self.y < pos[1] < self.y + self.h
             and hand.clicked()
         )
