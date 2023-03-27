@@ -18,6 +18,7 @@ from ImageCanvas import ImageCanvas
 from Button import Button
 from Hand import Hand
 from Dataset import Dataset
+from Variables import Variables
 
 folder_location = "Utilities"
 normal_keyboard_set = cv2.imread(f"{folder_location}/normal_layout.png", cv2.IMREAD_UNCHANGED)
@@ -145,7 +146,7 @@ class State:
             self.imageCanvas,
         )
     
-    def finishChallengeState(self, word_to_draw, limits):
+    def finishChallengeState(self, word_to_draw, limits, score):
         return FinishChallengeState(
             self.headerImage,
             self.ni_logo,
@@ -155,7 +156,8 @@ class State:
             self.video_height,
             self.imageCanvas,
             word_to_draw,
-            limits
+            limits,
+            score
         )
 
     @abstractmethod
@@ -189,7 +191,7 @@ class EmailState(State):
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
 
-        img = Text.putText(img, "Email", (50, 70), 50)
+        img = Text.putText(img, "Email", (50, 70), 50, (0,0,0))
         text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
         img = text_field_ui.draw(img)
 
@@ -244,7 +246,7 @@ class PictureTimerState(State):
             imageCanvas,
         )
 
-        self.timer = Timer(5)
+        self.timer = Timer(Variables.SCRENNSHOT_TIME)
 
     def run(self, img, hand: Hand) -> tuple["State", Mat]:
         img = self.imageCanvas.merge(img)
@@ -424,7 +426,7 @@ class NameState(State):
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
 
-        img = Text.putText(img, "Nome", (50, 70), 50)
+        img = Text.putText(img, "Nome", (50, 70), 50, (0,0,0))
         text_field_ui = Button(200, 50, self.text_field.parsed_value, 800)
         img = text_field_ui.draw(img)
 
@@ -455,12 +457,12 @@ class NameState(State):
 
 
 class FinishChallengeState(State):
-    def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, word_to_draw, limits) -> None:
+    def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, word_to_draw, limits, score) -> None:
         super().__init__(headerImage, ni_logo, ni_banner, ranking_img, ranking, video_height, imageCanvas)
         self.email_btn = Button(900,350,"Enviar para email", 350, ignore_padding=True)
         self.username_btn = Button(900,450,"Escrever nome", 350, ignore_padding=True)
         self.word_to_draw = word_to_draw
-        self.score = 70 # predict!
+        self.score = score
         self.limits = limits
         self.show_name_btn = self.ranking.willInsertScore(self.score)
 
@@ -515,7 +517,7 @@ class ChallengeModeState(PaintingState):
     def __init__(self, headerImage, ni_logo, ni_banner, ranking_img, ranking: Ranking, video_height, imageCanvas: ImageCanvas, limits) -> None:
         super().__init__(headerImage, ni_logo, ni_banner, ranking_img, ranking, video_height, imageCanvas, limits)
         self.word_to_draw = Dataset().get_random_word()
-        self.timer = Timer(3)
+        self.timer = Timer(Variables.CHALLENGE_TIME)
 
     def run(self, img, hands: Hand) -> tuple["State", Mat]:
         square_size = 470
@@ -537,7 +539,9 @@ class ChallengeModeState(PaintingState):
             img = Text.putTextCenter(img, str(value), top + 250, offsetX, size=200)
 
         if self.timer.completed:
-            return self.finishChallengeState(self.word_to_draw, self.limits), img
+            predicts = Dataset().get_predicts(self.imageCanvas.canvas)
+            score = Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
+            return self.finishChallengeState(self.word_to_draw, self.limits, score), img
 
 
         state, img = self.draw_menu(img, hands)
