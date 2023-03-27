@@ -74,14 +74,6 @@ state: State = MainMenuState(
     move_img,
 )
 
-
-def save_image(matrix):
-    timestamp = time.time()
-    filename = f"images/{timestamp}.png"
-    cv2.imwrite(filename, matrix)
-    return
-
-
 hands_list: list[Hand] = []
 
 
@@ -185,16 +177,8 @@ while True:
     key = cv2.waitKey(1)
 
     # Keyboard Shortcuts
-    if key == ord("p"):
-        ds = Dataset()
-        predicts = ds.get_predicts(imageCanvas.canvas)
-        percentage = ds.get_top3(predicts)
-        print(percentage)
-    elif key == ord("s"):
-        save_image(img)
-
     # Press 'q' to quit the program
-    elif key == ord("q"):
+    if key == ord("q"):
         break
 
 cv2.destroyAllWindows()

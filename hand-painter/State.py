@@ -1,4 +1,6 @@
+import os
 import threading
+import time
 from Text import Text
 from TextField import TextField
 from abc import ABC, abstractmethod
@@ -107,7 +109,7 @@ class State:
             next_state
         )
 
-    def emailState(self, next_state = None):
+    def emailState(self, filename_canvas, filename_foto, next_state = None):
         return EmailState(
             self.headerImage,
             self.ni_logo,
@@ -120,6 +122,8 @@ class State:
             self.erase_img,
             self.paint_img,
             self.move_img,
+            filename_canvas,
+            filename_foto,
             next_state
         )
 
@@ -242,6 +246,8 @@ class EmailState(State):
         erase_img,
         paint_img,
         move_img,
+        filename_canvas,
+        filename_foto,
         next_state = None
     ) -> None:
         super().__init__(
@@ -259,6 +265,8 @@ class EmailState(State):
         )
         self.text_field = TextField()
         self.keyboard = Keyboard(lambda x: self.text_field.type(x))
+        self.filename_canvas = filename_canvas
+        self.filename_foto = filename_foto
         self.next_state = next_state
 
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
@@ -294,7 +302,7 @@ class EmailState(State):
             elif self.keyboard.submit_btn.click(hand):
                 threading.Thread(
                     target=lambda: Mail().send(
-                        self.text_field.parsed_value, ["foto.png", "desenho.png"]
+                        self.text_field.parsed_value, [self.filename_foto, self.filename_canvas]
                     )
                 ).start()
 
@@ -352,10 +360,13 @@ class PictureTimerState(State):
             img = Text.putTextCenter(img, str(value), 350, size=200)
 
         if self.timer.completed:
-            cv2.imwrite("desenho.png", self.imageCanvas.white_canvas())
-            cv2.imwrite("foto.png", self.imageCanvas.merge_camera())
-
-            return self.emailState(self.next_state), img
+            timestamp = time.time()
+            os.mkdir(f"screenshots/{timestamp}")
+            filename_canvas = f"screenshots/{timestamp}/desenho.png"
+            filename_foto = f"screenshots/{timestamp}/foto.png"
+            cv2.imwrite(filename_canvas, self.imageCanvas.white_canvas())
+            cv2.imwrite(filename_foto, self.imageCanvas.merge_camera())
+            return self.emailState(filename_canvas, filename_foto, self.next_state), img
 
         return self, img
 
