@@ -176,10 +176,18 @@ while True:
     cv2.imshow("Hand Painter", img)
     key = cv2.waitKey(1)
 
-    # Keyboard Shortcuts
-    # Press 'q' to quit the program
-    if key == ord("q"):
-        break
+    if key == -1:
+        continue
+    else:
+        key_consumed, new_state = state.handle_input(key)
+
+        if not key_consumed:
+            # Global Keyboard Shortcuts
+            if key == ord("q"):
+                # Press 'q' to quit the program
+                break
+            if new_state != None:
+                state = new_state
 
 cv2.destroyAllWindows()
 exit()
