@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class Ranking:
     top = []  # top 10 scores
 
