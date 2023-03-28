@@ -764,7 +764,7 @@ class NameState(State):
             return True, None
         else:
             print("Unknown input key", _input_key)
-            return False, self.mainMenuState()
+            return False, None
 
     def run(self, img, hands: list[Hand]) -> tuple["State", Mat]:
         self.keyboard.draw(img, hands)
@@ -849,7 +849,7 @@ class FinishChallengeState(State):
             "Escrever nome",
             350,
             ignore_padding=True,
-            enabled=not self.ranking.willInsertScore(score),
+            enabled=self.ranking.willInsertScore(score),
         )
         self.word_to_draw = word_to_draw
         self.score = score
@@ -960,7 +960,7 @@ class ChallengeModeState(PaintingState):
 
         if self.timer.completed:
             predicts = Dataset().get_predicts(self.imageCanvas.canvas)
-            score = 10  # Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
+            score = Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
             return self.finishChallengeState(self.word_to_draw, self.limits, score), img
 
         state, img = self.draw_menu(img, hands)
