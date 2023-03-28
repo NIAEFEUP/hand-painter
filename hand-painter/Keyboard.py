@@ -14,7 +14,7 @@ class KeyboardState(Enum):
 
 
 class Keyboard:
-    BACKSPACE_KEY_CODE: ClassVar[int] = 8
+    BACKSPACE_KEY_CODE: ClassVar[int] = 127
     ENTER_KEY_CODE: ClassVar[int] = 13
     AT_KEY_CODE: ClassVar[int] = 3
     SPACE_KEY_CODE: ClassVar[int] = 32

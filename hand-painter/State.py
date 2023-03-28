@@ -277,7 +277,7 @@ class EmailState(State):
         self.keyboard = Keyboard(self.input_handler)
 
         self.submit_handler = threading.Thread(
-            target=lambda: Mail().send(self.get_mail(), ["foto.png", "desenho.png"])
+            target=lambda: Mail().send(self.get_mail(), [self.filename_canvas, self.filename_foto])
         )
 
     def handle_input(self, _input_key: int):
@@ -299,14 +299,14 @@ class EmailState(State):
                 True,
                 None,
             )  # special characters that should not trigger a state change
-        elif (key_char := chr(_input_key)) in string.ascii_lowercase:
+        elif (key_char := chr(_input_key)) in f'{string.ascii_lowercase}ç':
             self.input_handler(
                 chr(ord(key_char) - 32)
                 if self.keyboard.modifier == KeyboardState.SHIFT
                 else key_char
             )
             return True, None
-        elif (key_char := chr(_input_key - 32)) in string.ascii_uppercase:
+        elif (key_char := chr(_input_key - 32)) in f'{string.ascii_uppercase}Ç':
             self.input_handler(
                 chr(ord(key_char) + 32)
                 if self.keyboard.modifier == KeyboardState.SHIFT
@@ -696,14 +696,14 @@ class NameState(State):
                 True,
                 None,
             )  # special characters that should not trigger a state change
-        elif (key_char := chr(_input_key)) in string.ascii_lowercase:
+        elif (key_char := chr(_input_key)) in f'{string.ascii_lowercase}ç':
             self.text_field.type(
                 chr(ord(key_char) - 32)
                 if self.keyboard.modifier == KeyboardState.SHIFT
                 else key_char
             )
             return True, None
-        elif (key_char := chr(_input_key - 32)) in string.ascii_uppercase:
+        elif (key_char := chr(_input_key - 32)) in f'{string.ascii_uppercase}Ç':
             self.text_field.type(
                 chr(ord(key_char) + 32)
                 if self.keyboard.modifier == KeyboardState.SHIFT
