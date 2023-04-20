@@ -39,8 +39,10 @@ class Mail:
                     """
                 Olá!
 
-                Obrigado por teres passado na nossa banca e teres ficado a conhecer aquilo que fazemos no Núcleo e na faculdade!
+                Obrigado por teres passado na nossa banca e teres ficado a conhecer aquilo que fazemos no curso de Informática!
 
+                Para mais informações sobre o curso, podes consultar https://paginas.fe.up.pt/~estudar/cursos/licenciatura-engenharia-informatica/
+                
                 Segue-nos nas nossas redes sociais para que estejas a par de tudo aquilo que fazemos! @niaefeup
 
                 Enviamos em anexo os teus desenhos!
