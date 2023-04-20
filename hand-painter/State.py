@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 from cv2 import Mat
 import cvzone
+import sys
 
 from Mail import Mail
 from Timer import Timer
@@ -53,7 +54,7 @@ class State:
         self.controls_btn = Button(900, 100, "CONTROLOS")
         self.back_btn = Button(100, 250, "VOLTAR ATRÁS")
         self.exit_btn = Button(900, video_height - 100, "SAIR")
-        self.picture_btn = Button(25, video_height - 100, "FOTO")
+        self.picture_btn = Button(25, video_height - 100, "FOTO") if "--no-photo" not in sys.argv else Button(-500, -500, "")
         self.headerImage = headerImage
         self.ni_logo = ni_logo
         self.ni_banner = ni_banner
