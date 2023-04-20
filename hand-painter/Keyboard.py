@@ -47,12 +47,13 @@ class Keyboard:
     start_y = 200
 
     def draw(self, img, hands):
-        match self.modifier:
-            case KeyboardState.NORMAL:
-                keys = self.keys
-            case KeyboardState.SHIFT:
-                keys = self.shift
-
+        if(self.modifier == KeyboardState.NORMAL):
+            keys = self.keys
+        elif(self.modifier == KeyboardState.SHIFT):
+            keys = self.shift
+        else:
+            keys = self.keys
+            
         for y, keyset in enumerate(keys):
             for x, key in enumerate(keyset):
                 if not key:
