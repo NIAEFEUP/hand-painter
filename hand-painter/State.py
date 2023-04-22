@@ -54,7 +54,7 @@ class State:
         self.controls_btn = Button(900, 100, "CONTROLOS")
         self.back_btn = Button(100, 250, "VOLTAR ATRÁS")
         self.exit_btn = Button(900, video_height - 100, "SAIR")
-        self.picture_btn = Button(25, video_height - 100, "FOTO") if "--no-photo" not in sys.argv else Button(-500, -500, "")
+        self.picture_btn = Button(25, video_height - 100, "FOTO", enabled=("--no-photo" not in sys.argv))
         self.headerImage = headerImage
         self.ni_logo = ni_logo
         self.ni_banner = ni_banner
@@ -843,7 +843,7 @@ class FinishChallengeState(State):
             paint_img,
             move_img,
         )
-        self.email_btn = Button(900, 350, "Enviar para email", 350, ignore_padding=True)
+        self.email_btn = Button(900, 350, "Enviar para email", 350, ignore_padding=True, enabled=("--no-photo" not in sys.argv))
         self.username_btn = Button(
             900,
             450,
