@@ -555,7 +555,7 @@ class PaintingState(State):
                         hand.set_brush(PaintingState.GREEN_BRUSH)
                     elif 832 < x1 < 925:
                         hand.set_brush(PaintingState.BLUE_BRUSH)
-                    elif 962 < x1 < 1051:
+                    elif 1122 < x1 < 1211:
                         self.imageCanvas.reset()  # clears the canvas
 
             # Drawing mode: Index finger up
