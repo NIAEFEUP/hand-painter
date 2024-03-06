@@ -7,11 +7,11 @@ import copy
 import handtrackingmodule as htm  # mediapipe library used in this module
 
 from Hand import Hand
-from Button import Button
 from ImageCanvas import ImageCanvas
 from Ranking import Ranking
-from State import PaintingState, State, MainMenuState
-from Dataset import Dataset
+from PaintingState import PaintingState
+from MainMenuState import MainMenuState
+from StateMachine import StateMachine
 
 import math
 
@@ -60,19 +60,22 @@ detector = htm.handDetector(detectionCon=0.85)
 # Numpy array with zeros(representing black screen) similar to the dimensions of original video frames
 imageCanvas = ImageCanvas(1280, 720)
 
-state: State = MainMenuState(
-    headerImage,
-    ni_logo,
-    ni_banner,
-    ranking_img,
-    ranking,
-    video_height,
-    imageCanvas,
-    click_img,
-    erase_img,
-    paint_img,
-    move_img,
+state_machine: StateMachine = StateMachine(
+    MainMenuState(
+        headerImage,
+        ni_logo,
+        ni_banner,
+        ranking_img,
+        ranking,
+        video_height,
+        imageCanvas,
+        click_img,
+        erase_img,
+        paint_img,
+        move_img,
+    )
 )
+
 
 hands_list: list[Hand] = []
 
@@ -158,17 +161,17 @@ while True:
         (old_width / new_width, old_height / new_height),
     )
 
-    state, img = state.run(img, hands_list)
+    img = state_machine.run(img, hands_list)
 
-    #for hand in hands_list:
+    # for hand in hands_list:
     #    if hand.middle_finger():
     #        x_min, x_max, y_min, y_max = hand.get_bounding_box()
-#
+    #
     #        y_min = max(0, y_min)
     #        y_max = min(img.shape[0], y_max)
     #        x_min = max(0, x_min)
     #        x_max = min(img.shape[1], x_max)
-#
+    #
     #        #img[y_min:y_max, x_min:x_max] = cv2.GaussianBlur(
     #        #    img[y_min:y_max, x_min:x_max], (77, 77), 77
     #        #)
@@ -179,15 +182,15 @@ while True:
     if key == -1:
         continue
     else:
-        key_consumed, new_state = state.handle_input(key)
+        key_consumed = state_machine.handle_input(key)
 
         if not key_consumed:
             # Global Keyboard Shortcuts
             if key == ord("q"):
                 # Press 'q' to quit the program
                 break
-            if new_state != None:
-                state = new_state
+            # if new_state != None:
+            #     state = new_state
 
 cv2.destroyAllWindows()
 exit()
