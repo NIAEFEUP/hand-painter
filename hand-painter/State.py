@@ -54,7 +54,8 @@ class State:
         self.controls_btn = Button(900, 100, "CONTROLOS")
         self.back_btn = Button(100, 250, "VOLTAR ATRÁS")
         self.exit_btn = Button(900, video_height - 100, "SAIR")
-        self.picture_btn = Button(25, video_height - 100, "FOTO", enabled=("--no-photo" not in sys.argv))
+        self.painting_exit_btn = Button(25, video_height - 100, "SAIR")
+        self.picture_btn = Button(900, video_height - 100, "FOTO", enabled=("--no-photo" not in sys.argv))
         self.headerImage = headerImage
         self.ni_logo = ni_logo
         self.ni_banner = ni_banner
@@ -554,7 +555,7 @@ class PaintingState(State):
                         hand.set_brush(PaintingState.GREEN_BRUSH)
                     elif 832 < x1 < 925:
                         hand.set_brush(PaintingState.BLUE_BRUSH)
-                    elif 962 < x1 < 1051:
+                    elif 1122 < x1 < 1211:
                         self.imageCanvas.reset()  # clears the canvas
 
             # Drawing mode: Index finger up
@@ -618,11 +619,11 @@ class PaintingState(State):
         # Logo
         img = cvzone.overlayPNG(img, self.ni_logo, (20, 20))
 
-        img = self.exit_btn.draw(img, hands)
+        img = self.painting_exit_btn.draw(img, hands)
 
         # TODO CHANGE THIS TO ABOVE UI?
         for hand in hands:
-            if self.exit_btn.click(hand):
+            if self.painting_exit_btn.click(hand):
                 return self.mainMenuState(), img
 
         return self, img
@@ -870,7 +871,7 @@ class FinishChallengeState(State):
         img = Text.putTextCenter(img, word, top + 100, offsetX, color=(54,54,179))
         img = Text.putTextCenter(img, f"{self.score}%", top + 150, offsetX, size=50)
 
-        img = self.exit_btn.draw(img, hands)
+        img = self.painting_exit_btn.draw(img, hands)
         img = self.username_btn.draw(img, hands)
         img = self.email_btn.draw(img, hands)
 
@@ -884,7 +885,7 @@ class FinishChallengeState(State):
                     self.username_btn.enabled = False
                     return self.nameState(self.word_to_draw, self.score, self), img
 
-                if self.exit_btn.click(hand):
+                if self.painting_exit_btn.click(hand):
                     return self.mainMenuState(), img
             continue
 
