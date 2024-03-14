@@ -28,9 +28,7 @@ class Ranking:
     def insertScore(self, name, score, draw):
         if name != "":
             df = pd.read_csv(self.csv_file)
-            df = df.append(
-                {"name": name, "score": score, "draw": draw}, ignore_index=True
-            )
+            df.loc[len(df)] = [name, score, draw]
             df = df.sort_values(by=["score"], ascending=False)
             df = df.reset_index(drop=True)
             df.to_csv(self.csv_file, index=False)
