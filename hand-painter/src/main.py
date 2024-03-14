@@ -9,8 +9,8 @@ import handtrackingmodule as htm  # mediapipe library used in this module
 from Hand import Hand
 from ImageCanvas import ImageCanvas
 from Ranking import Ranking
-from PaintingState import PaintingState
-from MainMenuState import MainMenuState
+from states.PaintingState import PaintingState
+from states.MainMenuState import MainMenuState
 from StateMachine import StateMachine
 
 import math
@@ -22,7 +22,8 @@ STATE = "main_menu"
 
 
 # Importing header images using os functions
-folder_location = "Utilities"
+# folder_location = # os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Utilities"))
+folder_location = "../Utilities"
 headerImage = cv2.imread(f"{folder_location}/Header/header.png", cv2.IMREAD_UNCHANGED)
 ni_logo = cv2.imread(f"{folder_location}/logo.png", cv2.IMREAD_UNCHANGED)
 ni_banner = cv2.imread(f"{folder_location}/banner.png", cv2.IMREAD_UNCHANGED)

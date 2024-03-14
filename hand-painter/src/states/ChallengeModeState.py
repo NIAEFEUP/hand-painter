@@ -2,8 +2,9 @@ import math
 from cv2 import Mat
 
 
-from PaintingState import PaintingState
-from State import State
+from states.State import State
+from states.PaintingState import PaintingState
+
 from Ranking import Ranking
 from ImageCanvas import ImageCanvas
 from Hand import Hand
@@ -11,6 +12,7 @@ from Dataset import Dataset
 from Timer import Timer
 from Variables import Variables
 from Text import Text
+
 
 class ChallengeModeState(PaintingState):
     def __init__(
@@ -59,7 +61,7 @@ class ChallengeModeState(PaintingState):
         text2 = self.word_to_draw["name_pt"]
 
         img = Text.putTextCenter(img, text1, top + 50, offsetX)
-        img = Text.putTextCenter(img, text2, top + 100, offsetX, color=(54,54,179))
+        img = Text.putTextCenter(img, text2, top + 100, offsetX, color=(54, 54, 179))
 
         # Don't show text on 0s, where the picture is taken
         value = math.ceil(self.timer.value)
@@ -69,8 +71,15 @@ class ChallengeModeState(PaintingState):
 
         if self.timer.completed:
             predicts = Dataset().get_predicts(self.imageCanvas.canvas)
-            score = Dataset().get_compare_percentage(predicts, self.word_to_draw["index"])
-            return self.stateMachine.finishChallengeState(self.word_to_draw, self.limits, score), img
+            score = Dataset().get_compare_percentage(
+                predicts, self.word_to_draw["index"]
+            )
+            return (
+                self.stateMachine.finishChallengeState(
+                    self.word_to_draw, self.limits, score
+                ),
+                img,
+            )
 
         state, img = self.draw_menu(img, hands)
 

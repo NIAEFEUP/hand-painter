@@ -8,7 +8,7 @@ from ImageCanvas import ImageCanvas
 from Button import Button
 from Hand import Hand
 
-folder_location = "Utilities"
+folder_location = "../Utilities"
 normal_keyboard_set = cv2.imread(
     f"{folder_location}/normal_layout.png", cv2.IMREAD_UNCHANGED
 )

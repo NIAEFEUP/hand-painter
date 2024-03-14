@@ -2,7 +2,7 @@ import cvzone
 import cv2
 from cv2 import Mat
 
-from State import State
+from states.State import State
 from Hand import Hand
 
 

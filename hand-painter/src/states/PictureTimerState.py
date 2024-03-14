@@ -4,7 +4,7 @@ import time
 import math
 from cv2 import Mat
 
-from State import State
+from states.State import State
 from Ranking import Ranking
 from ImageCanvas import ImageCanvas
 from Hand import Hand

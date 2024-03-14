@@ -1,15 +1,15 @@
 from cv2 import Mat
 
-from State import State
-from MainMenuState import MainMenuState
-from PictureTimerState import PictureTimerState
-from EmailState import EmailState
-from NameState import NameState
-from FreeModeState import FreeModeState
-from ChallengeModeState import ChallengeModeState
-from RankingState import RankingState
-from ControlsState import ControlsState
-from FinishChallengeState import FinishChallengeState
+from states.State import State
+from states.MainMenuState import MainMenuState
+from states.PictureTimerState import PictureTimerState
+from states.EmailState import EmailState
+from states.NameState import NameState
+from states.FreeModeState import FreeModeState
+from states.ChallengeModeState import ChallengeModeState
+from states.RankingState import RankingState
+from states.ControlsState import ControlsState
+from states.FinishChallengeState import FinishChallengeState
 from Hand import Hand
 
 
@@ -178,5 +178,5 @@ class StateMachine:
     def handle_input(self, _input: int) -> bool:
         key_consumed, state = self.state.handle_input(_input)
         if state is not None:
-            self.state(state)
+            self.set_state(state)
         return key_consumed

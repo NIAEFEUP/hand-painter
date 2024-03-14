@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import cvzone
 
-from State import State
+from states.State import State
 from Ranking import Ranking
 from ImageCanvas import ImageCanvas
 from Hand import Hand

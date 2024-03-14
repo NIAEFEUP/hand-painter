@@ -1,7 +1,7 @@
 from cv2 import Mat
 
-from PaintingState import PaintingState
-from State import State
+from states.PaintingState import PaintingState
+from states.State import State
 from Hand import Hand
 
 class FreeModeState(PaintingState):

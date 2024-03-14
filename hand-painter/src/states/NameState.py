@@ -3,7 +3,7 @@ import cvzone
 import cv2
 from cv2 import Mat
 
-from State import State, normal_keyboard_set, shift_keyboard_set
+from states.State import State, normal_keyboard_set, shift_keyboard_set
 from Ranking import Ranking
 from ImageCanvas import ImageCanvas
 from TextField import TextField
