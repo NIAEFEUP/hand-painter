@@ -14,7 +14,7 @@ class Mail:
         self.smtp_server_domain_name = "smtp.gmail.com"
 
         config = {
-            **dotenv_values("../.env"),
+            **dotenv_values(".env"),
             **os.environ,
         }
 
