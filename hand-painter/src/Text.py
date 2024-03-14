@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Text:
-    font_path = "./Skrapbook.ttf"
+    font_path = "../Skrapbook.ttf"
     font = ImageFont.truetype(font_path, 35)
     NI_COLOR_RED = (179, 54, 54)
 
@@ -12,7 +12,7 @@ class Text:
     def putText(img, text, coordinates, size=35, color=(255, 255, 255), thickness=2):
         pil_image = Text.cv2pillow(img)
 
-        font = Text.font if size == 35 else ImageFont.truetype("./Skrapbook.ttf", size)
+        font = Text.font if size == 35 else ImageFont.truetype(Text.font_path, size)
         color = (color[2], color[1], color[0])
 
         draw = ImageDraw.Draw(pil_image)
@@ -26,7 +26,7 @@ class Text:
     ):
         width = 1280 - offsetX
 
-        font = Text.font if size == 35 else ImageFont.truetype("./Skrapbook.ttf", size)
+        font = Text.font if size == 35 else ImageFont.truetype(Text.font_path, size)
         color = (color[2], color[1], color[0])
 
         pil_image = Text.cv2pillow(img)
@@ -51,7 +51,7 @@ class Text:
         pil_image = Text.cv2pillow(img)
         draw = ImageDraw.Draw(pil_image)
 
-        font = Text.font if size == 35 else ImageFont.truetype("./Skrapbook.ttf", size)
+        font = Text.font if size == 35 else ImageFont.truetype(Text.font_path, size)
 
         color = (color[2], color[1], color[0])
 
