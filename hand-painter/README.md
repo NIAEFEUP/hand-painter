@@ -10,6 +10,7 @@ pip3 install -r requirements.txt
 <br>
 
 ## To run without the "Tirar foto" button:
+This is useful when running without email environment variables setup.
 
 ```bash
 python3 main.py --no-photo  # inside the src/ directory
@@ -20,8 +21,8 @@ python3 main.py --no-photo  # inside the src/ directory
 
 Setup email environment variables in the .env file
 ```
-EMAIL=custom_email@example.com
-PASSWORD=very_secure_password
+MJ_APIKEY_PUBLIC=
+MJ_APIKEY_PRIVATE=
 ```
 
 Run the application

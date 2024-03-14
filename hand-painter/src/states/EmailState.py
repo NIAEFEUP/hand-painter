@@ -54,7 +54,7 @@ class EmailState(State):
         self.keyboard = Keyboard(self.input_handler)
 
         self.submit_handler = threading.Thread(
-            target=lambda: Mail().send(self.get_mail(), [self.filename_canvas, self.filename_foto])
+            target=lambda: Mail().send_using_api(self.get_mail(), [self.filename_canvas, self.filename_foto])
         )
 
     def handle_input(self, _input_key: int):
