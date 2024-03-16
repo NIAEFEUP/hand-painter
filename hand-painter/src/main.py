@@ -146,8 +146,7 @@ while True:
     imageCanvas.camera = copy.deepcopy(img)
 
     # Finding Hand Landmarks using handtrackingmodule
-    img = detector.findHands(img, img)
-    landmarkList = detector.findPositions(img, draw=False)
+    img, landmarkList = detector.findHands(img)
     hand_fingers = detector.fingersUp()
 
     cropped_img = img[:new_height, :new_width]
