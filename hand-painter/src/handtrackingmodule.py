@@ -7,36 +7,34 @@ import cv2
 import numpy as np
 import time
 
+DOTS_DRAW_SPEC = mp.solutions.drawing_styles.DrawingSpec(
+    color=(47, 47, 255),
+    thickness=2,
+    circle_radius=2
+)
+LINES_DRAW_SPEC = mp.solutions.drawing_styles.DrawingSpec(
+    color=(54, 54, 179),
+    thickness=2,
+    circle_radius=2
+)
 
 class handDetector:
     # Constructor, with some default values
     def __init__(
         self, mode=False, maxHands=5, detectionCon=0.5, modelComplexity=1, trackCon=0.5
     ):
-        # # Assigning the hand detector as well as hand landmarks(points) detector funtions to variables of the class
-        # self.mpHands = mp.solutions.hands
-        # self.hands = self.mpHands.Hands(
-        #     self.mode,
-        #     self.maxHands,
-        #     self.modelComplex,
-        #     self.detectionCon,
-        #     self.trackCon,
-        # )
-        # self.mpDraw = mp.solutions.drawing_utils
-
-        # min_hand_detection_confidence: float = 0.5, The minimum confidence score for the hand detection to be considered successful.
-        # min_hand_presence_confidence: float = 0.5, The minimum confidence score of hand presence score in the hand landmark detection.
-        # min_tracking_confidence: float = 0.5, The minimum confidence score for the hand tracking to be considered successful.
-
+        # Check https://developers.google.com/mediapipe/solutions/vision/hand_landmarker/python
         base_options = python.BaseOptions(model_asset_path="../hand_landmarker.task")
         options = vision.HandLandmarkerOptions(
             base_options=base_options,
             num_hands=maxHands,
+            min_hand_detection_confidence=detectionCon,
+            min_tracking_confidence=trackCon,
         )
         self.detector = vision.HandLandmarker.create_from_options(options)
 
     # function to detect hands and place/draw landmarks on them
-    def findHands(self, img, draw=True):
+    def findHands(self, img):
         img1 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=img1)
 
@@ -61,14 +59,8 @@ class handDetector:
                 img2,
                 hand_landmarks_proto,
                 solutions.hands.HAND_CONNECTIONS,
-                solutions.drawing_styles.get_default_hand_landmarks_style(),
-                solutions.drawing_styles.get_default_hand_connections_style(),
-                # self.mpDraw.DrawingSpec(
-                #     color=(47, 47, 255), thickness=2, circle_radius=2
-                # ),  # color of points
-                # self.mpDraw.DrawingSpec(
-                #     color=(54, 54, 179), thickness=2, circle_radius=2
-                # ),
+                DOTS_DRAW_SPEC,
+                LINES_DRAW_SPEC
             )  # color of connections
 
         self.lmList = self.findPositions(img2)

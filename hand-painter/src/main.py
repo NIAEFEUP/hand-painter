@@ -55,7 +55,7 @@ vCap.set(4, video_width * ratio)
 
 # Creating an instance from the handtrackingmodule
 # Setting the detection confidence to 85% for accurate performance
-detector = htm.handDetector(detectionCon=0.85)
+detector = htm.handDetector(detectionCon=0.5)
 
 # Canvas: It'll be like an invisible screen on our video, on which drawing functions will be implemented.
 # Numpy array with zeros(representing black screen) similar to the dimensions of original video frames
