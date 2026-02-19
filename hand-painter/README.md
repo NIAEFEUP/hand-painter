@@ -1,5 +1,8 @@
 ## Setup
 
+> [!IMPORTANT]
+> You must use Python version 3.11 for the program to work properly. Versions ≥3.12 do not work!
+
 Create a virtual environment and install the dependencies:
 
 ```bash
